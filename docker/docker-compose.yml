@@ -1,0 +1,98 @@
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: docquery-postgres
+    environment:
+      POSTGRES_DB: docquery
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: docquery-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: docquery-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: docquery-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - postgres
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: docquery-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  tempo:
+    image: grafana/tempo:2.4.0
+    container_name: docquery-tempo
+    ports:
+      - "4317:4317"
+      - "3200:3200"
+    command: -config.file=/etc/tempo.yaml
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: docquery-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
+  ollama-data:
+  grafana-data:
