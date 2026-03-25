@@ -19,6 +19,8 @@ public class RabbitMQConfig {
     public static final String RETRY_QUEUE = "document.parsed.retry";
     public static final String DLQ = "document.parsed.dlq";
     public static final String ROUTING_KEY = "document.parsed";
+    public static final String INDEXED_QUEUE = "document.indexed";
+    public static final String INDEXED_ROUTING_KEY = "document.indexed";
 
     @Bean
     public TopicExchange documentExchange() {
@@ -53,6 +55,19 @@ public class RabbitMQConfig {
                 .bind(documentParsedQueue())
                 .to(documentExchange())
                 .with(ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue documentIndexedQueue() {
+        return QueueBuilder.durable(INDEXED_QUEUE).build();
+    }
+
+    @Bean
+    public Binding documentIndexedBinding() {
+        return BindingBuilder
+                .bind(documentIndexedQueue())
+                .to(documentExchange())
+                .with(INDEXED_ROUTING_KEY);
     }
 
     @Bean

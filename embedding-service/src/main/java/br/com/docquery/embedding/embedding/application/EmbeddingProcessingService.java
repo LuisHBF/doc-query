@@ -1,6 +1,8 @@
 package br.com.docquery.embedding.embedding.application;
 
+import br.com.docquery.commons.messaging.DocumentIndexedEvent;
 import br.com.docquery.commons.messaging.DocumentParsedEvent;
+import br.com.docquery.embedding.embedding.infrastructure.messaging.publisher.DocumentEventPublisher;
 import br.com.docquery.embedding.embedding.infrastructure.persistence.DocumentChunkEntity;
 import br.com.docquery.embedding.embedding.infrastructure.persistence.DocumentChunkJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class EmbeddingProcessingService {
 
     private final DocumentChunkJpaRepository documentChunkJpaRepository;
     private final EmbeddingModel embeddingModel;
+    private final DocumentEventPublisher documentEventPublisher;
 
     public void process(DocumentParsedEvent event) {
         List<UUID> chunkIds = event.getChunkIds();
@@ -42,6 +45,13 @@ public class EmbeddingProcessingService {
         documentChunkJpaRepository.saveAll(updatedChunks);
 
         log.info("Successfully embedded {} chunks for document {}", chunks.size(), event.getDocumentId());
+
+        DocumentIndexedEvent documentIndexedEvent = DocumentIndexedEvent.builder()
+                .documentId(event.getDocumentId())
+                .userId(event.getUserId())
+                .build();
+
+        documentEventPublisher.publishDocumentIndexed(documentIndexedEvent);
     }
 
 }
