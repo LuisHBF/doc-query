@@ -24,6 +24,10 @@ tracing:
     probability: 1.0
 
 
+jwt:
+  secret: ${JWT_SECRET:3d8f2a1b9c7e4f6d0a5b8c3e1f7d2a9b4c6e8f0d3a5b7c9e1f4d6a8b0c2e4f6d}
+  expiration: ${JWT_EXPIRATION:86400000}
+
 logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
