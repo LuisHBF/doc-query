@@ -15,6 +15,7 @@ import java.util.UUID;
 public class UploadDocumentAppService implements UploadDocumentUseCase {
 
     private final DocumentRepository documentRepository;
+    private final DocumentProcessingService documentProcessingService;
 
     @Override
     public UUID handle(Command command) {
@@ -30,7 +31,11 @@ public class UploadDocumentAppService implements UploadDocumentUseCase {
                 .indexedAt(null)
                 .build();
 
-        return documentRepository.save(document);
+        UUID documentId = documentRepository.save(document);
+
+        documentProcessingService.process(documentId, command.getContent());
+
+        return documentId;
     }
 
 }
