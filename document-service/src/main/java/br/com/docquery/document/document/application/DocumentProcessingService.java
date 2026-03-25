@@ -3,7 +3,7 @@ package br.com.docquery.document.document.application;
 import br.com.docquery.commons.messaging.DocumentParsedEvent;
 import br.com.docquery.document.document.domain.Document;
 import br.com.docquery.document.document.domain.DocumentRepository;
-import br.com.docquery.document.document.infrastructure.messaging.DocumentEventPublisher;
+import br.com.docquery.document.document.infrastructure.messaging.publisher.DocumentEventPublisher;
 import br.com.docquery.document.document.infrastructure.parsing.DocumentChunker;
 import br.com.docquery.document.document.infrastructure.parsing.DocumentParser;
 import br.com.docquery.document.document.infrastructure.persistence.DocumentChunkEntity;

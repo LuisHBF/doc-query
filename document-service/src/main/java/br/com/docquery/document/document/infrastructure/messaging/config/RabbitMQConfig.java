@@ -20,7 +20,11 @@ public class RabbitMQConfig {
     public static final String DLQ = "document.parsed.dlq";
     public static final String ROUTING_KEY = "document.parsed";
     public static final String INDEXED_QUEUE = "document.indexed";
+    public static final String INDEXED_DLQ = "document.indexed.dlq";
     public static final String INDEXED_ROUTING_KEY = "document.indexed";
+    public static final String INDEXING_STARTED_QUEUE = "document.indexing.started";
+    public static final String INDEXING_STARTED_DLQ = "document.indexing.started.dlq";
+    public static final String INDEXING_STARTED_ROUTING_KEY = "document.indexing.started";
 
     @Bean
     public TopicExchange documentExchange() {
@@ -59,7 +63,15 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue documentIndexedQueue() {
-        return QueueBuilder.durable(INDEXED_QUEUE).build();
+        return QueueBuilder.durable(INDEXED_QUEUE)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", INDEXED_DLQ)
+                .build();
+    }
+
+    @Bean
+    public Queue documentIndexedDlq() {
+        return QueueBuilder.durable(INDEXED_DLQ).build();
     }
 
     @Bean
@@ -68,6 +80,27 @@ public class RabbitMQConfig {
                 .bind(documentIndexedQueue())
                 .to(documentExchange())
                 .with(INDEXED_ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue documentIndexingStartedQueue() {
+        return QueueBuilder.durable(INDEXING_STARTED_QUEUE)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", INDEXING_STARTED_DLQ)
+                .build();
+    }
+
+    @Bean
+    public Queue documentIndexingStartedDlq() {
+        return QueueBuilder.durable(INDEXING_STARTED_DLQ).build();
+    }
+
+    @Bean
+    public Binding documentIndexingStartedBinding() {
+        return BindingBuilder
+                .bind(documentIndexingStartedQueue())
+                .to(documentExchange())
+                .with(INDEXING_STARTED_ROUTING_KEY);
     }
 
     @Bean

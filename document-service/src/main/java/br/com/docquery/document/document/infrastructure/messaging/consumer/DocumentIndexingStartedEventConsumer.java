@@ -1,6 +1,6 @@
 package br.com.docquery.document.document.infrastructure.messaging.consumer;
 
-import br.com.docquery.commons.messaging.DocumentIndexedEvent;
+import br.com.docquery.commons.messaging.DocumentIndexingStartedEvent;
 import br.com.docquery.document.document.domain.Document;
 import br.com.docquery.document.document.domain.DocumentRepository;
 import com.rabbitmq.client.Channel;
@@ -16,32 +16,31 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DocumentIndexedEventConsumer {
+public class DocumentIndexingStartedEventConsumer {
 
     private final DocumentRepository documentRepository;
 
-    @RabbitListener(queues = "document.indexed", ackMode = "MANUAL")
-    public void consume(DocumentIndexedEvent event,
+    @RabbitListener(queues = "document.indexing.started", ackMode = "MANUAL")
+    public void consume(DocumentIndexingStartedEvent event,
                         Channel channel,
                         @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) throws IOException {
 
-        log.info("Received DocumentIndexedEvent for document {}", event.getDocumentId());
+        log.info("Received DocumentIndexingStartedEvent for document {}", event.getDocumentId());
 
         try {
-
             Document document = documentRepository.findById(event.getDocumentId())
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Document not found: " + event.getDocumentId()));
 
-            Document indexed = document.finishIndexing();
+            Document indexing = document.startIndexing();
 
-            documentRepository.save(indexed);
+            documentRepository.save(indexing);
 
             channel.basicAck(deliveryTag, false);
 
-            log.info("Document {} transitioned to INDEXED", event.getDocumentId());
+            log.info("Document {} transitioned to INDEXING", event.getDocumentId());
         } catch (Exception e) {
-            log.error("Failed to process DocumentIndexedEvent for document {}", event.getDocumentId(), e);
+            log.error("Failed to process DocumentIndexingStartedEvent for document {}", event.getDocumentId(), e);
             boolean requeue = !(e instanceof IllegalStateException || e instanceof IllegalArgumentException);
             channel.basicNack(deliveryTag, false, requeue);
         }

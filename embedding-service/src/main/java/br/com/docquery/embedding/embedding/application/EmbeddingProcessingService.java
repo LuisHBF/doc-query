@@ -1,6 +1,7 @@
 package br.com.docquery.embedding.embedding.application;
 
 import br.com.docquery.commons.messaging.DocumentIndexedEvent;
+import br.com.docquery.commons.messaging.DocumentIndexingStartedEvent;
 import br.com.docquery.commons.messaging.DocumentParsedEvent;
 import br.com.docquery.embedding.embedding.infrastructure.messaging.publisher.DocumentEventPublisher;
 import br.com.docquery.embedding.embedding.infrastructure.persistence.DocumentChunkEntity;
@@ -27,6 +28,13 @@ public class EmbeddingProcessingService {
         List<UUID> chunkIds = event.getChunkIds();
 
         log.info("Processing {} chunks for document {}", chunkIds.size(), event.getDocumentId());
+
+        DocumentIndexingStartedEvent indexingStartedEvent = DocumentIndexingStartedEvent.builder()
+                .documentId(event.getDocumentId())
+                .userId(event.getUserId())
+                .build();
+
+        documentEventPublisher.publishDocumentIndexingStarted(indexingStartedEvent);
 
         List<DocumentChunkEntity> chunks = documentChunkJpaRepository.findAllById(chunkIds);
 
