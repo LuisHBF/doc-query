@@ -1,4 +1,4 @@
-package br.com.docquery.commons;
+package br.com.docquery.commons.messaging;
 
 import lombok.Builder;
 import lombok.Value;
