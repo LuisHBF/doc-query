@@ -1,4 +1,4 @@
-package br.com.docquery.document.document.infrastructure.messaging;
+package br.com.docquery.document.document.infrastructure.messaging.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;

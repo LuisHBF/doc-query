@@ -1,4 +1,4 @@
-package br.com.docquery.document.document.infrastructure.messaging;
+package br.com.docquery.document.document.infrastructure.messaging.publisher;
 
 import br.com.docquery.commons.messaging.DocumentParsedEvent;
 import lombok.RequiredArgsConstructor;
