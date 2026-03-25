@@ -1,14 +1,18 @@
 package br.com.docquery.document.document.api;
 
+import br.com.docquery.commons.CurrentUserId;
+import br.com.docquery.document.document.usecase.GetDocumentUseCase;
 import br.com.docquery.document.document.usecase.UploadDocumentUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import br.com.docquery.document.document.usecase.GetDocumentUseCase;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -23,7 +27,7 @@ public class DocumentController {
 
     @PostMapping
     public ResponseEntity<UUID> upload(@RequestParam("file") MultipartFile file,
-                                       @RequestHeader("X-Api-Gateway-User-Id") UUID userId) throws IOException {
+                                       @CurrentUserId UUID userId) throws IOException {
 
         UploadDocumentUseCase.Command command = UploadDocumentUseCase.Command.builder()
                 .userId(userId)
@@ -39,9 +43,8 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GetDocumentUseCase.Response> getDocument(
-            @PathVariable UUID id,
-            @RequestHeader("X-Api-Gateway-User-Id") UUID userId) {
+    public ResponseEntity<GetDocumentUseCase.Response> getDocument(@PathVariable UUID id,
+                                                                   @CurrentUserId UUID userId) {
 
         GetDocumentUseCase.Response response = getDocumentUseCase.handle(id, userId);
         return ResponseEntity.ok(response);
