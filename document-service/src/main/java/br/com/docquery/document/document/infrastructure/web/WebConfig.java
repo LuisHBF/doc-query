@@ -1,6 +1,6 @@
 package br.com.docquery.document.document.infrastructure.web;
 
-import br.com.docquery.commons.CurrentUserIdResolver;
+import br.com.docquery.commons.web.CurrentUserIdResolver;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

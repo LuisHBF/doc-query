@@ -1,6 +1,6 @@
 package br.com.docquery.document.document.api;
 
-import br.com.docquery.commons.CurrentUserId;
+import br.com.docquery.commons.web.CurrentUserId;
 import br.com.docquery.document.document.usecase.GetDocumentUseCase;
 import br.com.docquery.document.document.usecase.UploadDocumentUseCase;
 import lombok.RequiredArgsConstructor;
