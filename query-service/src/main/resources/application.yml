@@ -24,6 +24,8 @@ spring:
   config:
     import:
       optional:configserver:
+  flyway:
+    enabled: false
 
 management:
   endpoints:
