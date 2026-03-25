@@ -12,10 +12,6 @@ public interface DocumentRepository {
 
     List<Document> findAllByUserId(UUID userId);
 
-    void updateStatus(UUID id, DocumentStatus status);
-
-    void updateChunkCount(UUID id, Integer chunkCount);
-
     void delete(UUID id);
 
 }

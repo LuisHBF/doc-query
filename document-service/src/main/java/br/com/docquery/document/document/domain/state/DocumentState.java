@@ -11,4 +11,15 @@ public interface DocumentState {
     DocumentState fail();
     DocumentStatus status();
 
+    static DocumentState from(DocumentStatus status) {
+        return switch (status) {
+            case UPLOADED  -> new UploadedState();
+            case PARSING   -> new ParsingState();
+            case PARSED    -> new ParsedState();
+            case INDEXING  -> new IndexingState();
+            case INDEXED   -> new IndexedState();
+            case FAILED    -> new FailedState();
+        };
+    }
+
 }
