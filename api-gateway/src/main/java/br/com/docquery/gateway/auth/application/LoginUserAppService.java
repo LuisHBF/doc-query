@@ -25,7 +25,7 @@ public class LoginUserAppService implements LoginUserUseCase {
             throw new IllegalArgumentException("Invalid credentials");
         }
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getEmail(), user.getId());
 
         return new Response(token, jwtService.getExpiration());
     }
