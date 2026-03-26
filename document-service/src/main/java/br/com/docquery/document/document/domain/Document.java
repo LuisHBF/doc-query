@@ -40,7 +40,8 @@ public class Document {
     }
 
     public Document finishIndexing() {
-        return this.withState(state.finishIndexing());
+        return this.withState(state.finishIndexing())
+                .withIndexedAt(LocalDateTime.now());
     }
 
     public Document fail() {
