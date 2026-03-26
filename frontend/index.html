@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>doc-query — RAG Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!--  AUTH OVERLAY -->
+  <div id="auth-overlay" class="auth-overlay">
+    <div class="auth-card">
+
+      <div class="auth-logo">
+        <span class="logo-text">doc-query</span>
+        <span class="pill-badge">RAG Platform</span>
+      </div>
+      <p class="auth-subtitle">Chat with your documents using local AI</p>
+
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" data-tab="login" role="tab" aria-selected="true">Login</button>
+        <button class="auth-tab" data-tab="register" role="tab" aria-selected="false">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn-primary btn-full" id="login-btn">
+          <span class="btn-label">Sign in</span>
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="auth-form hidden" novalidate>
+        <div class="form-group">
+          <label for="register-email">Email</label>
+          <input type="email" id="register-email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="register-password">Password</label>
+          <input type="password" id="register-password" placeholder="••••••••" required autocomplete="new-password" />
+        </div>
+        <button type="submit" class="btn-primary btn-full" id="register-btn">
+          <span class="btn-label">Create account</span>
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!--  MAIN APP -->
+  <div id="app" class="app hidden">
+
+    <!-- HEADER -->
+    <header class="header" aria-label="Application header">
+      <div class="header-left">
+        <button class="hamburger hidden" id="hamburger-btn" aria-label="Toggle sidebar">
+          <i data-lucide="menu"></i>
+        </button>
+        <div class="logo">
+          <span class="logo-text">doc-query</span>
+          <span class="pill-badge">RAG Platform</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="user-email" id="user-email" aria-label="Logged in user"></span>
+        <button class="btn-ghost" id="logout-btn" aria-label="Logout">
+          <i data-lucide="log-out"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- LAYOUT -->
+    <div class="layout">
+
+      <!-- Sidebar overlay (mobile backdrop) -->
+      <div class="sidebar-overlay hidden" id="sidebar-overlay" aria-hidden="true"></div>
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar" aria-label="Document sidebar">
+
+        <!-- Upload Area -->
+        <div class="upload-area" id="upload-area" role="button" tabindex="0" aria-label="Upload a PDF document">
+          <input type="file" id="file-input" accept=".pdf" aria-label="Select PDF file" />
+          <div class="upload-icon-wrap">
+            <i data-lucide="upload-cloud"></i>
+          </div>
+          <p class="upload-label">Drop PDF here</p>
+          <p class="upload-hint">or <span class="upload-link">click to browse</span></p>
+        </div>
+
+        <!-- Upload Progress -->
+        <div class="upload-progress hidden" id="upload-progress" aria-live="polite">
+          <div class="upload-progress-info">
+            <span class="upload-filename" id="upload-filename"></span>
+            <span class="upload-status-text" id="upload-status-text">Uploading…</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Document List -->
+        <div class="documents-section">
+          <div class="documents-header">
+            <h3>Documents</h3>
+            <span class="doc-count" id="doc-count">0</span>
+          </div>
+          <div id="documents-list" role="list" aria-label="Your documents">
+            <div class="empty-list">
+              <i data-lucide="files"></i>
+              <p>No documents yet</p>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- MAIN AREA -->
+      <main class="main" aria-label="Chat area">
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state">
+          <div class="empty-state-glow"></div>
+          <div class="empty-state-icon">
+            <i data-lucide="message-square-text"></i>
+          </div>
+          <h2>Start a conversation</h2>
+          <p>Upload a PDF and select an indexed document<br />to chat with it using local AI.</p>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area hidden" id="chat-area">
+
+          <!-- Chat Header -->
+          <div class="chat-header">
+            <div class="chat-header-info">
+              <i data-lucide="file-text"></i>
+              <h2 id="chat-document-name"></h2>
+            </div>
+            <button class="btn-ghost btn-sm" id="clear-history-btn" aria-label="Clear conversation history">
+              <i data-lucide="trash-2"></i>
+              <span>Clear history</span>
+            </button>
+          </div>
+
+          <!-- Messages -->
+          <div class="messages" id="messages" role="log" aria-live="polite" aria-label="Conversation messages"></div>
+
+          <!-- Chat Input -->
+          <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <textarea
+                id="chat-input"
+                placeholder="Ask a question about this document…"
+                rows="1"
+                aria-label="Type your question"
+              ></textarea>
+              <button class="btn-send" id="send-btn" aria-label="Send message">
+                <i data-lucide="send"></i>
+              </button>
+            </div>
+            <p class="input-hint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line</p>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer" aria-label="Footer">
+      Built by <a href="https://github.com/LuisHBF" target="_blank" rel="noopener noreferrer">LuisHBF</a>
+      &nbsp;·&nbsp; doc-query v1.0 &nbsp;·&nbsp; Powered by LLaMA 3.2 + Spring Boot
+    </footer>
+
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" aria-live="assertive" aria-label="Notifications"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
