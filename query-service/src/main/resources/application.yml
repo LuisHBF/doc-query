@@ -18,7 +18,7 @@ spring:
     ollama:
       base-url: http://localhost:11434
       chat:
-        model: llama3.2
+        model: llama3.2:3b
       embedding:
         model: nomic-embed-text
   config:
