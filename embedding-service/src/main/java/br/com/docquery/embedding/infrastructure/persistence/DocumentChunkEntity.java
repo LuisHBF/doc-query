@@ -1,4 +1,4 @@
-package br.com.docquery.embedding.embedding.infrastructure.persistence;
+package br.com.docquery.embedding.infrastructure.persistence;
 
 import io.hypersistence.utils.hibernate.type.array.FloatArrayType;
 import jakarta.persistence.Column;

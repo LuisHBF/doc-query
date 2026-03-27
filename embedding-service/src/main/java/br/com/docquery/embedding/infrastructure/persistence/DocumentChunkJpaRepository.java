@@ -1,4 +1,4 @@
-package br.com.docquery.embedding.embedding.infrastructure.persistence;
+package br.com.docquery.embedding.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

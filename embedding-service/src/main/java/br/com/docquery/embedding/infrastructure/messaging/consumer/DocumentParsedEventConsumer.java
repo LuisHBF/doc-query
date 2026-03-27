@@ -1,7 +1,7 @@
-package br.com.docquery.embedding.embedding.infrastructure.messaging.consumer;
+package br.com.docquery.embedding.infrastructure.messaging.consumer;
 
 import br.com.docquery.commons.messaging.DocumentParsedEvent;
-import br.com.docquery.embedding.embedding.application.EmbeddingProcessingService;
+import br.com.docquery.embedding.application.EmbeddingProcessingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

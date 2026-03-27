@@ -1,11 +1,11 @@
-package br.com.docquery.embedding.embedding.application;
+package br.com.docquery.embedding.application;
 
 import br.com.docquery.commons.messaging.DocumentIndexedEvent;
 import br.com.docquery.commons.messaging.DocumentIndexingStartedEvent;
 import br.com.docquery.commons.messaging.DocumentParsedEvent;
-import br.com.docquery.embedding.embedding.infrastructure.messaging.publisher.DocumentEventPublisher;
-import br.com.docquery.embedding.embedding.infrastructure.persistence.DocumentChunkEntity;
-import br.com.docquery.embedding.embedding.infrastructure.persistence.DocumentChunkJpaRepository;
+import br.com.docquery.embedding.infrastructure.messaging.publisher.DocumentEventPublisher;
+import br.com.docquery.embedding.infrastructure.persistence.DocumentChunkEntity;
+import br.com.docquery.embedding.infrastructure.persistence.DocumentChunkJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.embedding.EmbeddingModel;

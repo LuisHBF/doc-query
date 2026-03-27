@@ -1,4 +1,4 @@
-package br.com.docquery.embedding.embedding.infrastructure.messaging.publisher;
+package br.com.docquery.embedding.infrastructure.messaging.publisher;
 
 import br.com.docquery.commons.messaging.DocumentIndexedEvent;
 import br.com.docquery.commons.messaging.DocumentIndexingStartedEvent;
