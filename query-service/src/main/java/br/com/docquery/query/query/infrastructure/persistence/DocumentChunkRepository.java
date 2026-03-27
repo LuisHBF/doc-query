@@ -13,6 +13,18 @@ public class DocumentChunkRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
+    public boolean existsByDocumentIdAndUserId(UUID documentId, UUID userId) {
+        String sql = """
+                SELECT EXISTS(
+                    SELECT 1 FROM document_chunks dc
+                    JOIN documents d ON d.id = dc.document_id
+                    WHERE dc.document_id = ? AND d.user_id = ?
+                )
+                """;
+        Boolean result = jdbcTemplate.queryForObject(sql, Boolean.class, documentId, userId);
+        return Boolean.TRUE.equals(result);
+    }
+
     public List<DocumentChunkEntity> findSimilarChunks(UUID documentId, float[] queryEmbedding, int topK) {
         String vectorLiteral = toVectorLiteral(queryEmbedding);
 

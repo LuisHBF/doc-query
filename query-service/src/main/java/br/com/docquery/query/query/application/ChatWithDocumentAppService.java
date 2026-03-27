@@ -3,10 +3,13 @@ package br.com.docquery.query.query.application;
 import br.com.docquery.query.query.domain.ConversationHistory;
 import br.com.docquery.query.query.domain.ConversationHistoryRepository;
 import br.com.docquery.query.query.infrastructure.ai.RagService;
+import br.com.docquery.query.query.infrastructure.persistence.DocumentChunkRepository;
 import br.com.docquery.query.query.usecase.ChatWithDocumentUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
@@ -20,9 +23,14 @@ public class ChatWithDocumentAppService implements ChatWithDocumentUseCase {
 
     private final RagService ragService;
     private final ConversationHistoryRepository conversationHistoryRepository;
+    private final DocumentChunkRepository documentChunkRepository;
 
     @Override
     public SseEmitter handle(Command command) {
+        if (!documentChunkRepository.existsByDocumentIdAndUserId(command.getDocumentId(), command.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found");
+        }
+
         List<ConversationHistory> history = conversationHistoryRepository
                 .findByDocumentIdAndUserId(command.getDocumentId(), command.getUserId());
 
