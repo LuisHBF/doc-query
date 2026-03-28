@@ -8,3 +8,4 @@ target/
 *.log
 CLAUDE.md
 BLUEPRINT.md
+.claude/
