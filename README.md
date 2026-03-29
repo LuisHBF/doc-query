@@ -2,209 +2,218 @@
 
 [![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.1-brightgreen?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![LLaMA](https://img.shields.io/badge/LLaMA-3.2%203B-blueviolet?logo=meta&logoColor=white)](https://ollama.com/library/llama3.2)
+[![pgvector](https://img.shields.io/badge/pgvector-PostgreSQL%2016-4169E1?logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.13-FF6600?logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![Status](https://img.shields.io/badge/status-work%20in%20progress-yellow)](https://github.com/LuisHBF/doc-query)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**A local-first document intelligence platform powered by RAG, Spring Boot, and Ollama.**
+**A local-first RAG platform — upload PDFs, ask questions in natural language, get answers grounded in your documents. No external APIs. No data leaving your machine.**
 
-Upload your PDFs. Ask questions in natural language. Get answers grounded in your documents — entirely on your own machine, with no external APIs and no data leaving your environment.
+> Built by [LuisHBF](https://github.com/LuisHBF)
 
 ---
 
-## Overview
+## What is this?
 
-doc-query is a Retrieval-Augmented Generation (RAG) platform built with a microservices architecture. You upload a PDF, the system processes it asynchronously — extracting text, splitting it into chunks, and generating vector embeddings — and then lets you have a natural language conversation with the document's content.
+You upload a PDF. The system extracts text, splits it into overlapping chunks, generates vector embeddings, and stores them in PostgreSQL with pgvector. When you ask a question, it embeds your query, retrieves the most relevant chunks via cosine similarity, and streams a grounded LLM response back to you in real time.
 
-Every component runs on your own hardware: the LLM, the embedding model, the vector database, the message broker, and the observability stack. Nothing reaches the internet after initial setup.
+From an engineering perspective, this is a production-grade microservices system built to demonstrate patterns that matter at scale: event-driven async processing with RabbitMQ, domain-driven design with a State Machine for document lifecycle, clean hexagonal architecture, distributed tracing with OpenTelemetry, and a full observability stack — all running 100% locally via Docker Compose.
+
+---
+
+## Architecture at a Glance
+
+```
+ Browser / Frontend
+        │
+        ▼
+ ┌─────────────────────────────────────────────────────────────┐
+ │                    api-gateway  :8080                       │
+ │   JWT Auth  │  Rate Limiting (Bucket4j)  │  SCG MVC Router  │
+ └──────────────────────┬──────────────────────────────────────┘
+                        │  lb://  (Eureka)
+          ┌─────────────┼──────────────────┐
+          ▼                                ▼
+ ┌─────────────────┐             ┌──────────────────┐
+ │ document-service│             │  query-service   │
+ │     :8081       │             │     :8083        │
+ │                 │             │                  │
+ │ Upload → Parse  │             │ Embed question   │
+ │ Chunk → Publish │             │ pgvector search  │
+ └────────┬────────┘             │ LLM → SSE stream │
+          │ RabbitMQ             └──────────────────┘
+          │ document.parsed
+          ▼
+ ┌──────────────────────┐
+ │  embedding-service   │
+ │       :8082          │
+ │                      │
+ │  Consume event       │
+ │  nomic-embed-text    │
+ │  Store → pgvector    │
+ └──────────────────────┘
+
+ ─────────────────────────────────────────────────────────────
+  Infrastructure (Docker Compose)
+  PostgreSQL+pgvector :5432  │  RabbitMQ :5672/:15672
+  Ollama :11434              │  Eureka :8761
+  Prometheus :9090           │  Loki :3100
+  Tempo :4317/:3200          │  Grafana :3000
+```
 
 ---
 
 ## Tech Stack
 
-| Category | Technology | Version |
+| Category | Technology | Purpose |
 |---|---|---|
-| Language | Java | 21 |
-| Framework | Spring Boot | 3.4.1 |
-| Build | Maven | 3.9.x |
-| LLM abstraction | Spring AI | 1.x |
-| LLM runtime | Ollama | latest |
-| Chat model | LLaMA 3.2 3B Q4 | — |
-| Embedding model | nomic-embed-text v1.5 | — |
-| Database | PostgreSQL | 16 |
-| Vector search | pgvector | — |
-| Migrations | Flyway | — |
-| Message broker | RabbitMQ | 3.13 |
-| Service discovery | Spring Cloud Netflix Eureka | 2023.0.x |
-| API Gateway | Spring Cloud Gateway MVC | 2023.0.x |
-| Rate limiting | Bucket4j | — |
-| PDF parsing | Apache Tika | — |
-| Tracing | OpenTelemetry + Tempo | — |
-| Metrics | Micrometer + Prometheus | — |
-| Logging | Loki + loki4j | — |
-| Dashboards | Grafana | 10.4.0 |
+| Language | Java 21 | Virtual Threads for high-concurrency without reactive complexity |
+| Framework | Spring Boot 3.4.1 | Application foundation across all services |
+| Build | Maven multi-module | Mono-repo with shared parent BOM |
+| AI Abstraction | Spring AI 1.0 | Vendor-agnostic interface for LLM and embedding models |
+| LLM Runtime | Ollama | Local model serving — no cloud dependency |
+| Chat Model | LLaMA 3.2 3B Q4 | Runs on 4 GB VRAM — practical for local hardware |
+| Embedding Model | nomic-embed-text v1.5 | 768-dimensional embeddings, 8192-token context |
+| Database | PostgreSQL 16 + pgvector | Relational data + HNSW vector index in one engine |
+| Migrations | Flyway | Versioned schema evolution |
+| Message Broker | RabbitMQ 3.13 | Async decoupling of ingestion pipeline |
+| Service Discovery | Eureka (Spring Cloud) | Dynamic routing — no hardcoded service URLs |
+| API Gateway | Spring Cloud Gateway MVC | JWT auth, rate limiting, load-balanced routing |
+| Rate Limiting | Bucket4j | Token bucket per user/IP, in-memory |
+| PDF Parsing | Apache Tika | Format-agnostic text extraction |
+| Tracing | OpenTelemetry + Tempo | Distributed trace propagation across services |
+| Metrics | Micrometer + Prometheus | HTTP, JVM and business metrics |
+| Logging | Loki + loki4j | Structured logs correlated with traces via traceId |
+| Dashboards | Grafana 10.4 | 3 auto-provisioned dashboards |
+| Infra | Docker Compose | Full stack in a single command |
 
 ---
 
-## Modules
+## Key Engineering Highlights
 
-| Module | Port | Description |
-|---|---|---|
-| **eureka-server** | 8761 | Service registry. All services register themselves on startup and send periodic heartbeats. The gateway resolves service addresses dynamically via `lb://service-name` instead of hardcoded URLs. |
-| **api-gateway** | 8080 | Single external entry point. Handles JWT authentication, rate limiting, and dynamic request routing to internal services via Spring Cloud Gateway MVC. |
-| **document-service** | 8081 | Handles file uploads, text extraction with Apache Tika, chunking, and async event publishing to RabbitMQ. Owns the document lifecycle state machine (UPLOADED → PARSED → INDEXED). |
-| **embedding-service** | 8082 | Consumes parsed document events from RabbitMQ, generates vector embeddings in batch using nomic-embed-text via Ollama, and persists them to pgvector. |
-| **query-service** | 8083 | Embeds user questions, performs cosine similarity search against pgvector, assembles prompts with retrieved context and conversation history, and streams LLM responses via SSE. |
-| **commons** | — | Shared library compiled into all services. Contains shared DTOs and web utilities (e.g. `ErrorResponse`). |
-
----
-
-## Service Discovery
-
-All services register with **Eureka Server** on startup using their `spring.application.name` as the service ID. The api-gateway resolves downstream addresses dynamically via `lb://service-name` — no hardcoded URLs anywhere in the routing layer.
-
-```
-eureka-server :8761
-    ↑ registers          ↑ registers          ↑ registers          ↑ registers
-api-gateway         document-service     embedding-service      query-service
-
-api-gateway routes:
-  /documents/**      →  lb://document-service   (resolved by Eureka)
-  /documents/*/chat  →  lb://query-service       (resolved by Eureka)
-```
-
-**Why not Traefik or Consul?** This project is Spring-native by design. Spring Cloud Netflix Eureka integrates directly with the Spring Boot autoconfiguration model and requires zero infrastructure beyond a JVM process. Adding Traefik would replace the gateway with a black box; Consul adds operational overhead without meaningful benefit at this scale.
-
-**Why Spring Cloud Gateway MVC instead of reactive SCG?** The gateway owns user authentication and requires JPA for the `users` table. The reactive SCG variant (Netty) is incompatible with blocking JPA. Spring Cloud Gateway MVC preserves the Virtual Threads + Tomcat model used across the entire platform while still providing declarative routing and Eureka integration.
+- **Domain State Machine** — Document lifecycle (`UPLOADED → PARSING → PARSED → INDEXING → INDEXED / FAILED`) enforced at the domain layer with the State pattern. Invalid transitions throw `IllegalStateException` — impossible to reach an inconsistent state.
+- **Fully local RAG pipeline** — Two Ollama models work in tandem: `nomic-embed-text` for embeddings, `LLaMA 3.2 3B` for generation. HNSW index with cosine similarity in pgvector. Zero external API calls at runtime.
+- **Event-driven ingestion with resilient messaging** — Upload triggers an async pipeline via RabbitMQ. Each consumer uses manual acknowledgment, a retry queue with 30s TTL, and a DLQ after 3 failed attempts — no silent message loss.
+- **Hexagonal architecture per service** — Domain, application and infrastructure layers are strictly separated. Domain entities have no JPA annotations; persistence models are mapped explicitly. The domain is testable without Spring.
+- **JWT with userId claim** — The authenticated user's UUID is embedded directly in the JWT payload. Downstream services extract it from the `X-Api-Gateway-User-Id` header — no database roundtrip per request to validate ownership.
+- **SSE streaming via Virtual Threads** — LLM responses stream token-by-token via `SseEmitter`. The query-service spawns a `newVirtualThreadPerTaskExecutor` for each streaming request, so the Tomcat thread is released immediately while the blocking Ollama call runs on a virtual thread.
+- **Full observability stack** — OTel traces propagated across all services. `traceId` injected in every log line. Loki → Tempo clickable correlation in Grafana. Three pre-built dashboards provisioned at container startup.
+- **Rate limiting at the gateway** — Bucket4j token buckets per authenticated user (or IP). Two tiers: 60 req/min general, 10 req/min for chat. 429 responses include `Retry-After` — never forwards overload downstream.
 
 ---
 
-## Rate Limiting
-
-All requests entering the system pass through a **Bucket4j** rate limit filter in the api-gateway, applied after JWT authentication so the key is always the authenticated user's email (or the client IP for unauthenticated requests like `/auth/**`).
-
-Two independent tiers protect different resource classes:
-
-| Tier | Applies to | Limit |
-|---|---|---|
-| Chat | `POST /documents/*/chat` | 10 requests / minute |
-| General | All other endpoints | 60 requests / minute |
-
-Each user (or IP) gets their own token bucket stored in memory. Buckets are created on first request and refill greedily every minute.
-
-When a bucket is exhausted the gateway returns immediately with no downstream call:
-
-```
-HTTP 429 Too Many Requests
-Retry-After: <seconds until refill>
-
-{"error": "Too Many Requests", "retryAfter": 42}
-```
-
-Allowed requests carry an `X-Rate-Limit-Remaining` header so clients can track how many tokens are left.
-
-**Why in-memory?** This is a single-instance deployment. A distributed store (Redis) would add operational complexity without benefit until horizontal scaling is needed.
-
----
-
-## Observability
-
-The platform ships a fully integrated observability stack. Every component is pre-configured and starts with `docker compose up -d` — no manual setup required.
-
-### Metrics — Prometheus + Grafana
-
-All four Spring Boot services expose `/actuator/prometheus`. Prometheus scrapes each one every 15 seconds.
-
-Three dashboards are **auto-provisioned** into Grafana and available immediately on first boot:
-
-| Dashboard | What it shows |
-|---|---|
-| **Services Overview** | Request rate, error rate (4xx/5xx %), average and max latency, JVM heap, CPU usage, live thread count, active requests — per service, with a multi-select filter |
-| **RAG Pipeline** | Documents uploaded, RabbitMQ messages published/consumed/rejected, DLQ activity, chat request rate broken down by HTTP status, 429 rate-limited requests over time, document-service latency per endpoint |
-| **Logs & Traces** | Log volume and error rate per minute per service (from Loki), and a live filterable log stream with `Service` and `Level` dropdowns |
-
-Access Grafana at **http://localhost:3000** (admin / admin).
-
-### Distributed Tracing — OpenTelemetry + Tempo
-
-Every request is instrumented with OpenTelemetry. Trace context (`traceId`, `spanId`) is propagated across service boundaries and included in every log line:
-
-```
-11:42:03.512  INFO [document-service,4f3a1c8b9d2e7f6a,8c1d4e2f3a9b5c7d] ...
-```
-
-From the **Logs & Traces** dashboard, clicking a `traceId` in the log stream opens the full distributed trace in Tempo automatically (the Loki → Tempo derived field is pre-configured).
-
-### Logging — Loki + loki4j
-
-All services ship structured logs to Loki via the `loki4j` appender. Each log entry carries `app`, `level`, and `host` labels, enabling fine-grained filtering in Grafana without parsing raw text.
-
-### Infrastructure URLs
-
-| Service | URL |
-|---|---|
-| Grafana | http://localhost:3000 |
-| Prometheus | http://localhost:9090 |
-| RabbitMQ Management | http://localhost:15672 |
-| Eureka Dashboard | http://localhost:8761 |
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Java 21
-- Maven 3.9.x
-- Docker Desktop (allocate at least 6 GB RAM)
-- A GPU with 8+ GB VRAM is recommended for fast inference, but CPU-only works too
-
-### Step 1 — Clone the repository
+## Quick Start
 
 ```bash
-git clone https://github.com/LuisHBF/doc-query.git
-cd doc-query
-```
+# 1. Clone
+git clone https://github.com/LuisHBF/doc-query.git && cd doc-query
 
-### Step 2 — Start the infrastructure
+# 2. Start infrastructure
+cd docker && docker compose up -d
 
-```bash
-cd docker
-docker compose up -d
-```
-
-Starts PostgreSQL, RabbitMQ, Ollama, Prometheus, Loki, Tempo, and Grafana. Wait 30–60 seconds for all containers to be healthy.
-
-### Step 3 — Pull the AI models (one-time)
-
-```bash
+# 3. Pull AI models (one-time, ~2 GB)
 docker exec -it docquery-ollama ollama pull llama3.2:3b
 docker exec -it docquery-ollama ollama pull nomic-embed-text
-```
 
-### Step 4 — Start the Spring Boot services
-
-Start `eureka-server` first, then the remaining services in any order. Each service registers itself with Eureka on startup and retries automatically if the registry is not yet available.
-
-Run each in a separate terminal from the repo root:
-
-```bash
-mvn -pl eureka-server spring-boot:run
+# 4. Start services (each in a separate terminal)
+mvn -pl eureka-server spring-boot:run   # start this one first
 mvn -pl api-gateway spring-boot:run
 mvn -pl document-service spring-boot:run
 mvn -pl embedding-service spring-boot:run
 mvn -pl query-service spring-boot:run
+
+# 5. Open frontend/index.html in your browser
 ```
 
-| Service | Port | Health |
-|---|---|---|
-| eureka-server | 8761 | http://localhost:8761 |
-| api-gateway | 8080 | http://localhost:8080/actuator/health |
-| document-service | 8081 | http://localhost:8081/actuator/health |
-| embedding-service | 8082 | http://localhost:8082/actuator/health |
-| query-service | 8083 | http://localhost:8083/actuator/health |
+> **Requirements:** Java 21, Maven 3.9+, Docker Desktop (6 GB RAM minimum). GPU with 8+ GB VRAM recommended for fast inference.
 
-### Step 5 — Open the frontend
+---
 
-Open `frontend/index.html` directly in your browser. No build step required.
+## Service Overview
 
-Register an account, log in, upload a PDF, wait for it to reach `INDEXED` status, then start chatting.
+| Service | Port | Responsibility | Key Technologies |
+|---|---|---|---|
+| **eureka-server** | 8761 | Service registry and health dashboard | Spring Cloud Netflix Eureka |
+| **api-gateway** | 8080 | Auth, rate limiting, dynamic routing | Spring Security, JWT, Bucket4j, SCG MVC |
+| **document-service** | 8081 | Upload, parse, chunk, publish events | Apache Tika, RabbitMQ, Flyway, JPA |
+| **embedding-service** | 8082 | Consume events, generate and store embeddings | Spring AI, RabbitMQ, pgvector |
+| **query-service** | 8083 | Semantic search, prompt assembly, SSE streaming | Spring AI, pgvector, SseEmitter |
+| **commons** | — | Shared DTOs and web utilities | — |
+
+---
+
+## RAG Pipeline
+
+### Ingestion Flow
+
+```
+POST /documents (multipart)
+        │
+        ▼
+  document-service
+  ├── Extract text (Apache Tika)
+  ├── Split into chunks (500 words, 50-word overlap)
+  ├── Persist chunks to PostgreSQL
+  ├── Status: UPLOADED → PARSING → PARSED
+  └── Publish DocumentParsedEvent → RabbitMQ
+              │
+              ▼
+      embedding-service
+      ├── Consume event (manual ack)
+      ├── Load all chunks from DB
+      ├── Generate embeddings (nomic-embed-text via Ollama)
+      ├── Store embedding vectors in pgvector
+      └── Status: INDEXING → INDEXED
+                  │
+                  ▼
+       Document ready for querying
+```
+
+### Query Flow
+
+```
+POST /documents/{id}/chat  {"message": "What is..."}
+        │
+        ▼
+  query-service
+  ├── Embed user question (nomic-embed-text)
+  ├── Cosine similarity search (pgvector HNSW)
+  ├── Retrieve top-K relevant chunks
+  ├── Load conversation history
+  ├── Assemble prompt (system + context + history + question)
+  └── Stream LLM response token-by-token (SSE)
+              │
+              ▼
+     SseEmitter → browser (real-time streaming)
+```
+
+---
+
+## Work in Progress
+
+| ✅ Implemented | 🚧 Planned |
+|---|---|
+| Full RAG pipeline (ingest + query) | k6 load testing scripts |
+| Domain State Machine for document lifecycle | mTLS between internal services |
+| Event-driven ingestion with DLQ and retry | Secret management (Vault / env injection) |
+| JWT authentication at the gateway | Multi-tenancy support |
+| Rate limiting (Bucket4j, 2 tiers) | Horizontal scaling with Redis-backed rate limit |
+| SSE streaming for LLM responses | CI/CD pipeline |
+| Conversation history per document | Kubernetes manifests |
+| Distributed tracing (OTel + Tempo) | |
+| Structured logs (Loki + loki4j) | |
+| 3 auto-provisioned Grafana dashboards | |
+| 236 tests across all modules | |
+
+---
+
+## Want to go deeper?
+
+[**ARCHITECTURAL_DECISIONS.md**](ARCHITECTURAL_DECISIONS.md) covers the full technical depth: system architecture diagrams, RabbitMQ topology, the domain state machine design, a RAG pipeline deep dive (chunking strategy, pgvector HNSW index, prompt engineering), security architecture, and 13 Architectural Decision Records (ADRs) with context, rationale and trade-offs for every major design choice.
+
+---
+
+## Author
+
+Built by [LuisHBF](https://github.com/LuisHBF)
