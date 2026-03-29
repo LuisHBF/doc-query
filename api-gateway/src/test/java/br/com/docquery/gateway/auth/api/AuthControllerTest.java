@@ -3,6 +3,10 @@ package br.com.docquery.gateway.auth.api;
 import br.com.docquery.gateway.auth.infrastructure.security.JwtService;
 import br.com.docquery.gateway.auth.usecase.LoginUserUseCase;
 import br.com.docquery.gateway.auth.usecase.RegisterUserUseCase;
+import br.com.docquery.gateway.ratelimit.RateLimitService;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -10,11 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Duration;
 import java.util.UUID;
-
-import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +44,18 @@ class AuthControllerTest {
 
     @MockBean
     private JwtService jwtService;
+
+    @MockBean
+    private RateLimitService rateLimitService;
+
+    @BeforeEach
+    void setUpRateLimit() {
+        Bucket permissiveBucket = Bucket.builder()
+                .addLimit(Bandwidth.builder().capacity(1000).refillGreedy(1000, Duration.ofMinutes(1)).build())
+                .build();
+        when(rateLimitService.resolveGeneralBucket(any())).thenReturn(permissiveBucket);
+        when(rateLimitService.resolveChatBucket(any())).thenReturn(permissiveBucket);
+    }
 
     @Test
     @DisplayName("POST /auth/register returns 201 CREATED with the new user UUID when registration succeeds")
