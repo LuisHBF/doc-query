@@ -37,14 +37,14 @@ class DocumentTest {
     }
 
     @Test
-    @DisplayName("should delegate getStatus to current state")
-    void shouldDelegateGetStatusToCurrentState() {
+    @DisplayName("delegates getStatus to the current state")
+    void delegatesGetStatusToCurrentState() {
         assertThat(uploaded.getStatus()).isEqualTo(DocumentStatus.UPLOADED);
     }
 
     @Test
-    @DisplayName("should transition through the full happy path")
-    void shouldTransitionThroughFullHappyPath() {
+    @DisplayName("transitions through the full happy path UPLOADED → PARSING → PARSED → INDEXING → INDEXED")
+    void transitionsThroughFullHappyPath() {
         Document parsing = uploaded.startParsing();
         assertThat(parsing.getStatus()).isEqualTo(DocumentStatus.PARSING);
         assertThat(parsing.getState()).isInstanceOf(ParsingState.class);
@@ -64,8 +64,8 @@ class DocumentTest {
     }
 
     @Test
-    @DisplayName("should not mutate the original instance after startParsing")
-    void shouldNotMutateOriginalAfterStartParsing() {
+    @DisplayName("does not mutate the original instance after startParsing — Document is immutable")
+    void doesNotMutateOriginalInstanceAfterStartParsing() {
         Document parsing = uploaded.startParsing();
 
         assertThat(uploaded.getStatus()).isEqualTo(DocumentStatus.UPLOADED);
@@ -74,8 +74,8 @@ class DocumentTest {
     }
 
     @Test
-    @DisplayName("should update chunkCount immutably when finishParsing is called")
-    void shouldUpdateChunkCountImmutably() {
+    @DisplayName("updates chunkCount immutably when finishParsing is called — original PARSING instance retains null chunkCount")
+    void updatesChunkCountImmutablyWhenFinishParsingIsCalled() {
         Document parsing = uploaded.startParsing();
         Document parsed = parsing.finishParsing(30);
 
@@ -84,8 +84,8 @@ class DocumentTest {
     }
 
     @Test
-    @DisplayName("should transition to FAILED from UPLOADED")
-    void shouldTransitionToFailedFromUploaded() {
+    @DisplayName("transitions to FAILED from UPLOADED when fail is called")
+    void transitionsToFailedFromUploaded() {
         Document failed = uploaded.fail();
 
         assertThat(failed.getStatus()).isEqualTo(DocumentStatus.FAILED);
@@ -93,8 +93,8 @@ class DocumentTest {
     }
 
     @Test
-    @DisplayName("should transition to FAILED from PARSING")
-    void shouldTransitionToFailedFromParsing() {
+    @DisplayName("transitions to FAILED from PARSING when fail is called")
+    void transitionsToFailedFromParsing() {
         Document failed = uploaded.startParsing().fail();
 
         assertThat(failed.getStatus()).isEqualTo(DocumentStatus.FAILED);
@@ -102,8 +102,8 @@ class DocumentTest {
     }
 
     @Test
-    @DisplayName("should transition to FAILED from PARSED")
-    void shouldTransitionToFailedFromParsed() {
+    @DisplayName("transitions to FAILED from PARSED when fail is called")
+    void transitionsToFailedFromParsed() {
         Document failed = uploaded.startParsing().finishParsing(5).fail();
 
         assertThat(failed.getStatus()).isEqualTo(DocumentStatus.FAILED);
@@ -111,8 +111,8 @@ class DocumentTest {
     }
 
     @Test
-    @DisplayName("should transition to FAILED from INDEXING")
-    void shouldTransitionToFailedFromIndexing() {
+    @DisplayName("transitions to FAILED from INDEXING when fail is called")
+    void transitionsToFailedFromIndexing() {
         Document failed = uploaded.startParsing().finishParsing(5).startIndexing().fail();
 
         assertThat(failed.getStatus()).isEqualTo(DocumentStatus.FAILED);
@@ -120,22 +120,22 @@ class DocumentTest {
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when finishParsing is called from UPLOADED")
-    void shouldThrowWhenFinishParsingCalledFromUploaded() {
+    @DisplayName("throws IllegalStateException when finishParsing is called from UPLOADED")
+    void throwsWhenFinishParsingCalledFromUploaded() {
         assertThatThrownBy(() -> uploaded.finishParsing(10))
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when startIndexing is called from UPLOADED")
-    void shouldThrowWhenStartIndexingCalledFromUploaded() {
+    @DisplayName("throws IllegalStateException when startIndexing is called from UPLOADED")
+    void throwsWhenStartIndexingCalledFromUploaded() {
         assertThatThrownBy(() -> uploaded.startIndexing())
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when finishIndexing is called from PARSED")
-    void shouldThrowWhenFinishIndexingCalledFromParsed() {
+    @DisplayName("throws IllegalStateException when finishIndexing is called from PARSED")
+    void throwsWhenFinishIndexingCalledFromParsed() {
         Document parsed = uploaded.startParsing().finishParsing(5);
 
         assertThatThrownBy(() -> parsed.finishIndexing())

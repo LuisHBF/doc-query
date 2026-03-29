@@ -19,42 +19,42 @@ class UploadedStateTest {
     }
 
     @Test
-    @DisplayName("should return UPLOADED status")
-    void shouldReturnUploadedStatus() {
+    @DisplayName("returns UPLOADED status")
+    void returnsUploadedStatus() {
         assertThat(state.status()).isEqualTo(DocumentStatus.UPLOADED);
     }
 
     @Test
-    @DisplayName("should transition to ParsingState when startParsing is called")
-    void shouldTransitionToParsingState() {
+    @DisplayName("transitions to ParsingState when startParsing is called")
+    void transitionsToParsingStateWhenStartParsingIsCalled() {
         DocumentState next = state.startParsing();
         assertThat(next).isInstanceOf(ParsingState.class);
     }
 
     @Test
-    @DisplayName("should transition to FailedState when fail is called")
-    void shouldTransitionToFailedState() {
+    @DisplayName("transitions to FailedState when fail is called")
+    void transitionsToFailedStateWhenFailIsCalled() {
         DocumentState next = state.fail();
         assertThat(next).isInstanceOf(FailedState.class);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when finishParsing is called")
-    void shouldThrowWhenFinishParsingCalled() {
+    @DisplayName("throws IllegalStateException when finishParsing is called")
+    void throwsWhenFinishParsingCalled() {
         assertThatThrownBy(() -> state.finishParsing(10))
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when startIndexing is called")
-    void shouldThrowWhenStartIndexingCalled() {
+    @DisplayName("throws IllegalStateException when startIndexing is called")
+    void throwsWhenStartIndexingCalled() {
         assertThatThrownBy(() -> state.startIndexing())
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when finishIndexing is called")
-    void shouldThrowWhenFinishIndexingCalled() {
+    @DisplayName("throws IllegalStateException when finishIndexing is called")
+    void throwsWhenFinishIndexingCalled() {
         assertThatThrownBy(() -> state.finishIndexing())
                 .isInstanceOf(IllegalStateException.class);
     }

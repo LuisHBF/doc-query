@@ -19,42 +19,42 @@ class FailedStateTest {
     }
 
     @Test
-    @DisplayName("should return FAILED status")
-    void shouldReturnFailedStatus() {
+    @DisplayName("returns FAILED status")
+    void returnsFailedStatus() {
         assertThat(state.status()).isEqualTo(DocumentStatus.FAILED);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when startParsing is called")
-    void shouldThrowWhenStartParsingCalled() {
+    @DisplayName("throws IllegalStateException when startParsing is called")
+    void throwsWhenStartParsingCalled() {
         assertThatThrownBy(() -> state.startParsing())
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when finishParsing is called")
-    void shouldThrowWhenFinishParsingCalled() {
+    @DisplayName("throws IllegalStateException when finishParsing is called")
+    void throwsWhenFinishParsingCalled() {
         assertThatThrownBy(() -> state.finishParsing(10))
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when startIndexing is called")
-    void shouldThrowWhenStartIndexingCalled() {
+    @DisplayName("throws IllegalStateException when startIndexing is called")
+    void throwsWhenStartIndexingCalled() {
         assertThatThrownBy(() -> state.startIndexing())
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when finishIndexing is called")
-    void shouldThrowWhenFinishIndexingCalled() {
+    @DisplayName("throws IllegalStateException when finishIndexing is called")
+    void throwsWhenFinishIndexingCalled() {
         assertThatThrownBy(() -> state.finishIndexing())
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    @DisplayName("should throw IllegalStateException when fail is called")
-    void shouldThrowWhenFailCalled() {
+    @DisplayName("throws IllegalStateException when fail is called")
+    void throwsWhenFailCalled() {
         assertThatThrownBy(() -> state.fail())
                 .isInstanceOf(IllegalStateException.class);
     }
