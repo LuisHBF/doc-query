@@ -1,0 +1,152 @@
+{
+  "uid": "docquery-logs-traces",
+  "title": "Logs & Traces",
+  "tags": ["docquery"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "loki_ds",
+        "type": "datasource",
+        "pluginId": "loki",
+        "label": "Loki",
+        "hide": 0
+      },
+      {
+        "name": "service",
+        "type": "custom",
+        "label": "Service",
+        "query": "api-gateway,document-service,embedding-service,query-service",
+        "options": [
+          { "text": "All",               "value": "$__all", "selected": true },
+          { "text": "api-gateway",        "value": "api-gateway" },
+          { "text": "document-service",   "value": "document-service" },
+          { "text": "embedding-service",  "value": "embedding-service" },
+          { "text": "query-service",      "value": "query-service" }
+        ],
+        "includeAll": true,
+        "multi": false,
+        "allValue": ".*",
+        "hide": 0
+      },
+      {
+        "name": "level",
+        "type": "custom",
+        "label": "Level",
+        "query": "ERROR,WARN,INFO,DEBUG",
+        "options": [
+          { "text": "All",   "value": "$__all", "selected": true },
+          { "text": "ERROR", "value": "ERROR" },
+          { "text": "WARN",  "value": "WARN" },
+          { "text": "INFO",  "value": "INFO" },
+          { "text": "DEBUG", "value": "DEBUG" }
+        ],
+        "includeAll": true,
+        "multi": false,
+        "allValue": ".*",
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Log Volume by Service (lines/min)",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 0 },
+      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "targets": [
+        {
+          "expr": "sum(rate({app=\"api-gateway\"}[1m])) * 60",
+          "legendFormat": "api-gateway",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate({app=\"document-service\"}[1m])) * 60",
+          "legendFormat": "document-service",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate({app=\"embedding-service\"}[1m])) * 60",
+          "legendFormat": "embedding-service",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(rate({app=\"query-service\"}[1m])) * 60",
+          "legendFormat": "query-service",
+          "refId": "D"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 }
+        }
+      },
+      "options": { "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Error Log Rate (ERROR lines/min)",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 7 },
+      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "targets": [
+        {
+          "expr": "sum(rate({app=\"api-gateway\", level=\"ERROR\"}[1m])) * 60",
+          "legendFormat": "api-gateway",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate({app=\"document-service\", level=\"ERROR\"}[1m])) * 60",
+          "legendFormat": "document-service",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate({app=\"embedding-service\", level=\"ERROR\"}[1m])) * 60",
+          "legendFormat": "embedding-service",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(rate({app=\"query-service\", level=\"ERROR\"}[1m])) * 60",
+          "legendFormat": "query-service",
+          "refId": "D"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2 },
+          "color": { "fixedColor": "red", "mode": "fixed" }
+        }
+      },
+      "options": { "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 3,
+      "type": "logs",
+      "title": "Log Stream",
+      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 14 },
+      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "targets": [
+        {
+          "expr": "{app=~\"$service\", level=~\"$level\"}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      }
+    }
+  ],
+  "schemaVersion": 39
+}
