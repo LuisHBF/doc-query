@@ -8,21 +8,16 @@
   "templating": {
     "list": [
       {
-        "name": "datasource",
-        "type": "datasource",
-        "pluginId": "prometheus",
-        "label": "Prometheus",
-        "hide": 0
-      },
-      {
         "name": "service",
         "type": "query",
-        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
         "query": "label_values(http_server_requests_seconds_count, job)",
         "label": "Service",
         "multi": true,
         "includeAll": true,
         "allValue": ".*",
+        "current": {},
+        "options": [],
         "hide": 0,
         "refresh": 2
       }
@@ -34,7 +29,7 @@
       "type": "timeseries",
       "title": "Request Rate (req/s)",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "sum(rate(http_server_requests_seconds_count{job=~\"$service\"}[1m])) by (job)",
@@ -55,7 +50,7 @@
       "type": "timeseries",
       "title": "Error Rate (4xx + 5xx %)",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "100 * sum(rate(http_server_requests_seconds_count{job=~\"$service\", status=~\"4..|5..\"}[1m])) by (job) / sum(rate(http_server_requests_seconds_count{job=~\"$service\"}[1m])) by (job)",
@@ -86,7 +81,7 @@
       "type": "timeseries",
       "title": "Average Latency (ms)",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "1000 * sum(rate(http_server_requests_seconds_sum{job=~\"$service\"}[1m])) by (job) / sum(rate(http_server_requests_seconds_count{job=~\"$service\"}[1m])) by (job)",
@@ -107,7 +102,7 @@
       "type": "timeseries",
       "title": "Max Latency (ms)",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "1000 * max(http_server_requests_seconds_max{job=~\"$service\"}) by (job)",
@@ -136,7 +131,7 @@
       "type": "timeseries",
       "title": "JVM Heap Used",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "sum(jvm_memory_used_bytes{job=~\"$service\", area=\"heap\"}) by (job)",
@@ -157,7 +152,7 @@
       "type": "timeseries",
       "title": "CPU Usage (%)",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "100 * process_cpu_usage{job=~\"$service\"}",
@@ -180,7 +175,7 @@
       "type": "timeseries",
       "title": "Live JVM Threads",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "jvm_threads_live_threads{job=~\"$service\"}",
@@ -201,7 +196,7 @@
       "type": "timeseries",
       "title": "Active HTTP Requests",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "sum(http_server_requests_active_seconds_count{job=~\"$service\"}) by (job)",

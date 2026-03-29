@@ -5,24 +5,14 @@
   "timezone": "browser",
   "refresh": "30s",
   "time": { "from": "now-1h", "to": "now" },
-  "templating": {
-    "list": [
-      {
-        "name": "datasource",
-        "type": "datasource",
-        "pluginId": "prometheus",
-        "label": "Prometheus",
-        "hide": 0
-      }
-    ]
-  },
+  "templating": { "list": [] },
   "panels": [
     {
       "id": 1,
       "type": "stat",
       "title": "Documents Uploaded (total)",
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "sum(http_server_requests_seconds_count{job=\"document-service\", uri=\"/documents\", method=\"POST\", status=\"202\"})",
@@ -52,7 +42,7 @@
       "type": "stat",
       "title": "Messages Consumed (total)",
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "sum(rabbitmq_acknowledged_total{job=\"embedding-service\"})",
@@ -82,7 +72,7 @@
       "type": "stat",
       "title": "Messages Rejected / DLQ (total)",
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "sum(rabbitmq_rejected_total{job=\"embedding-service\"})",
@@ -116,7 +106,7 @@
       "type": "stat",
       "title": "Chat Requests (total)",
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "sum(http_server_requests_seconds_count{job=\"api-gateway\", uri=\"/documents/*/chat\", method=\"POST\", status=\"200\"})",
@@ -146,7 +136,7 @@
       "type": "timeseries",
       "title": "RabbitMQ — Published vs Consumed (rate/min)",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "rate(rabbitmq_published_total{job=\"document-service\"}[1m]) * 60",
@@ -172,7 +162,7 @@
       "type": "timeseries",
       "title": "RabbitMQ — Rejected / DLQ (rate/min)",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "rate(rabbitmq_rejected_total{job=\"embedding-service\"}[1m]) * 60",
@@ -205,7 +195,7 @@
       "type": "timeseries",
       "title": "Chat Request Rate (req/s)",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "sum(rate(http_server_requests_seconds_count{job=\"api-gateway\", uri=\"/documents/*/chat\", method=\"POST\"}[1m])) by (status)",
@@ -226,7 +216,7 @@
       "type": "timeseries",
       "title": "Rate Limited Requests (429) — all endpoints",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "sum(rate(http_server_requests_seconds_count{job=\"api-gateway\", status=\"429\"}[1m])) by (uri)",
@@ -248,7 +238,7 @@
       "type": "timeseries",
       "title": "Document Service — Avg Latency by Endpoint (ms)",
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
           "expr": "1000 * sum(rate(http_server_requests_seconds_sum{job=\"document-service\"}[1m])) by (uri, method) / sum(rate(http_server_requests_seconds_count{job=\"document-service\"}[1m])) by (uri, method)",

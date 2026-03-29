@@ -8,27 +8,15 @@
   "templating": {
     "list": [
       {
-        "name": "loki_ds",
-        "type": "datasource",
-        "pluginId": "loki",
-        "label": "Loki",
-        "hide": 0
-      },
-      {
         "name": "service",
         "type": "custom",
         "label": "Service",
         "query": "api-gateway,document-service,embedding-service,query-service",
-        "options": [
-          { "text": "All",               "value": "$__all", "selected": true },
-          { "text": "api-gateway",        "value": "api-gateway" },
-          { "text": "document-service",   "value": "document-service" },
-          { "text": "embedding-service",  "value": "embedding-service" },
-          { "text": "query-service",      "value": "query-service" }
-        ],
+        "current": { "text": "All", "value": "$__all" },
+        "options": [],
         "includeAll": true,
         "multi": false,
-        "allValue": ".*",
+        "allValue": ".+",
         "hide": 0
       },
       {
@@ -36,16 +24,11 @@
         "type": "custom",
         "label": "Level",
         "query": "ERROR,WARN,INFO,DEBUG",
-        "options": [
-          { "text": "All",   "value": "$__all", "selected": true },
-          { "text": "ERROR", "value": "ERROR" },
-          { "text": "WARN",  "value": "WARN" },
-          { "text": "INFO",  "value": "INFO" },
-          { "text": "DEBUG", "value": "DEBUG" }
-        ],
+        "current": { "text": "All", "value": "$__all" },
+        "options": [],
         "includeAll": true,
         "multi": false,
-        "allValue": ".*",
+        "allValue": ".+",
         "hide": 0
       }
     ]
@@ -56,26 +39,30 @@
       "type": "timeseries",
       "title": "Log Volume by Service (lines/min)",
       "gridPos": { "h": 7, "w": 24, "x": 0, "y": 0 },
-      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
           "expr": "sum(rate({app=\"api-gateway\"}[1m])) * 60",
           "legendFormat": "api-gateway",
+          "queryType": "range",
           "refId": "A"
         },
         {
           "expr": "sum(rate({app=\"document-service\"}[1m])) * 60",
           "legendFormat": "document-service",
+          "queryType": "range",
           "refId": "B"
         },
         {
           "expr": "sum(rate({app=\"embedding-service\"}[1m])) * 60",
           "legendFormat": "embedding-service",
+          "queryType": "range",
           "refId": "C"
         },
         {
           "expr": "sum(rate({app=\"query-service\"}[1m])) * 60",
           "legendFormat": "query-service",
+          "queryType": "range",
           "refId": "D"
         }
       ],
@@ -92,26 +79,30 @@
       "type": "timeseries",
       "title": "Error Log Rate (ERROR lines/min)",
       "gridPos": { "h": 7, "w": 24, "x": 0, "y": 7 },
-      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
           "expr": "sum(rate({app=\"api-gateway\", level=\"ERROR\"}[1m])) * 60",
           "legendFormat": "api-gateway",
+          "queryType": "range",
           "refId": "A"
         },
         {
           "expr": "sum(rate({app=\"document-service\", level=\"ERROR\"}[1m])) * 60",
           "legendFormat": "document-service",
+          "queryType": "range",
           "refId": "B"
         },
         {
           "expr": "sum(rate({app=\"embedding-service\", level=\"ERROR\"}[1m])) * 60",
           "legendFormat": "embedding-service",
+          "queryType": "range",
           "refId": "C"
         },
         {
           "expr": "sum(rate({app=\"query-service\", level=\"ERROR\"}[1m])) * 60",
           "legendFormat": "query-service",
+          "queryType": "range",
           "refId": "D"
         }
       ],
@@ -129,10 +120,11 @@
       "type": "logs",
       "title": "Log Stream",
       "gridPos": { "h": 20, "w": 24, "x": 0, "y": 14 },
-      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "datasource": { "type": "loki", "uid": "loki" },
       "targets": [
         {
           "expr": "{app=~\"$service\", level=~\"$level\"}",
+          "queryType": "range",
           "refId": "A"
         }
       ],
