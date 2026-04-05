@@ -57,11 +57,30 @@ function switchAuthTab(target) {
   document.getElementById('register-form').classList.toggle('hidden', target !== 'register');
 }
 
+function validateAuthForm(email, password) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email) {
+    showToast('Email is required', 'error');
+    return false;
+  }
+  if (!emailRegex.test(email)) {
+    showToast('Invalid email format', 'error');
+    return false;
+  }
+  if (!password || password.length < 8) {
+    showToast('Password must be at least 8 characters', 'error');
+    return false;
+  }
+  return true;
+}
+
 async function handleLogin(event) {
   event.preventDefault();
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const btn = document.getElementById('login-btn');
+
+  if (!validateAuthForm(email, password)) return;
 
   setButtonLoading(btn, true, 'Signing in…');
   try {
@@ -71,8 +90,8 @@ async function handleLogin(event) {
     localStorage.setItem('dq_token', data.token);
     localStorage.setItem('dq_email', email);
     showApp();
-  } catch (_err) {
-    showToast('Invalid credentials', 'error');
+  } catch (err) {
+    showToast(err.message || 'Invalid credentials', 'error');
   } finally {
     setButtonLoading(btn, false, 'Sign in');
   }
@@ -84,14 +103,16 @@ async function handleRegister(event) {
   const password = document.getElementById('register-password').value;
   const btn = document.getElementById('register-btn');
 
+  if (!validateAuthForm(email, password)) return;
+
   setButtonLoading(btn, true, 'Creating account…');
   try {
     await apiPost('/auth/register', { email, password }, false);
     showToast('Account created! Please sign in.', 'success');
     switchAuthTab('login');
     document.getElementById('login-email').value = email;
-  } catch (_err) {
-    showToast('Registration failed. Email may already be in use.', 'error');
+  } catch (err) {
+    showToast(err.message || 'Registration failed. Email may already be in use.', 'error');
   } finally {
     setButtonLoading(btn, false, 'Create account');
   }
@@ -132,7 +153,14 @@ async function apiRequest(method, path, body, authenticated) {
   }
 
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+    let message = `HTTP ${response.status}`;
+    try {
+      const errBody = await response.json();
+      if (Array.isArray(errBody.errors) && errBody.errors.length > 0) {
+        message = errBody.errors[0];
+      }
+    } catch (_) { /* ignore parse failure */ }
+    throw new Error(message);
   }
 
   const contentType = response.headers.get('Content-Type') || '';

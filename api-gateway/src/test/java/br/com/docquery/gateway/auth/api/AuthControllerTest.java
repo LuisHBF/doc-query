@@ -99,4 +99,58 @@ class AuthControllerTest {
         assertThat(captor.getValue().getEmail()).isEqualTo("test@example.com");
         assertThat(captor.getValue().getPassword()).isEqualTo("mypassword123");
     }
+
+    // ── Validation — /auth/register ─────────────────────────────
+
+    @Test
+    @DisplayName("POST /auth/register returns 400 when email is blank")
+    void registerReturns400WhenEmailIsBlank() throws Exception {
+        mockMvc.perform(post("/auth/register").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"\",\"password\":\"password123\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").isArray());
+    }
+
+    @Test
+    @DisplayName("POST /auth/register returns 400 when email format is invalid")
+    void registerReturns400WhenEmailIsInvalid() throws Exception {
+        mockMvc.perform(post("/auth/register").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"not-an-email\",\"password\":\"password123\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").isArray());
+    }
+
+    @Test
+    @DisplayName("POST /auth/register returns 400 when password is shorter than 8 characters")
+    void registerReturns400WhenPasswordIsTooShort() throws Exception {
+        mockMvc.perform(post("/auth/register").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"user@example.com\",\"password\":\"short\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").isArray());
+    }
+
+    // ── Validation — /auth/login ─────────────────────────────────
+
+    @Test
+    @DisplayName("POST /auth/login returns 400 when email format is invalid")
+    void loginReturns400WhenEmailIsInvalid() throws Exception {
+        mockMvc.perform(post("/auth/login").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"not-an-email\",\"password\":\"password123\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").isArray());
+    }
+
+    @Test
+    @DisplayName("POST /auth/login returns 400 when password is shorter than 8 characters")
+    void loginReturns400WhenPasswordIsTooShort() throws Exception {
+        mockMvc.perform(post("/auth/login").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"user@example.com\",\"password\":\"short\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors").isArray());
+    }
 }
